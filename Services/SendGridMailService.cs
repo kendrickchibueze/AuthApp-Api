@@ -4,7 +4,7 @@ using SendGrid.Helpers.Mail;
 
 namespace AuthApp_Api.Services
 {
-    public class SendGridMailService : IMailService
+    public class SendGridMailService 
     {
 
         public IConfiguration Configuration { get; set; }
@@ -34,4 +34,6 @@ namespace AuthApp_Api.Services
             }
         }
     }
+
+   
 }

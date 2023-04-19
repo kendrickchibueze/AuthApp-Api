@@ -15,15 +15,13 @@ namespace AuthApp_Api.Services
         private readonly UserManager<User> _userManager;
         private readonly ISecurityService _jwtsecurity;
         private readonly IConfiguration _configuration;
-        private readonly IMailService _mailService;
         private readonly IEmailService _emailService;
 
-        public UserService(UserManager<User> userManager, ISecurityService jwtsecurity, IConfiguration configuration, IMailService mailService, IEmailService emailService)
+        public UserService(UserManager<User> userManager, ISecurityService jwtsecurity, IConfiguration configuration, IEmailService emailService)
         {
             _userManager = userManager;
             _jwtsecurity = jwtsecurity;
             _configuration = configuration;
-            _mailService = mailService;
             _emailService = emailService;
         }
 
@@ -90,7 +88,7 @@ namespace AuthApp_Api.Services
                 string url = $"{_configuration["appURL"]}ResetPassword?email={email}&token={vToken}";
 
 
-                await _mailService.SendEmailAsync(email, Msg.ResetPassword, $"<h1>{Msg.ResetPasswordMsg1}</h1>" +
+                await _emailService.SendEmail(email, Msg.ResetPassword, $"<h1>{Msg.ResetPasswordMsg1}</h1>" +
                   $"<p>{Msg.ResetPasswordMsg2}<a href='{url}' > {Msg.ResetPasswordMsg3}</a> </p>");
 
                 return new UserManagerResponse
@@ -205,7 +203,7 @@ namespace AuthApp_Api.Services
                     string url = $"{_configuration["appURL"]}api/authentication/confirmEmail?userid={user.Id}&token={validEmailToken}";
 
 
-                    await _mailService.SendEmailAsync(user.Email, Msg.ConfirmEmailMsg, $"<h1>{Msg.EmailMsgBody1}</h1>"
+                    await _emailService.SendEmail(user.Email, Msg.ConfirmEmailMsg, $"<h1>{Msg.EmailMsgBody1}</h1>"
                         + $"<p>{Msg.EmailMsgBody2} <a href='{url}'>{Msg.EmailMsgBody3}</a></p>");
 
                     return new UserManagerResponse

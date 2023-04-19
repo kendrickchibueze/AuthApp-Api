@@ -1,9 +1,11 @@
 using AuthApp_Api.Data;
+using AuthApp_Api.Extensions;
 using AuthApp_Api.Services;
 using AuthApp_Api.Services.Interface;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
@@ -29,6 +31,11 @@ namespace AuthApp_Api
                 opts.UseSqlServer(defaultConn);
 
             });
+
+
+            builder.Services.Configure<IdentityOptions>(opts => opts.SignIn.RequireConfirmedEmail = true);
+            builder.Services.ConfigureEmail(builder.Configuration);
+            builder.Services.AddEmailService(builder.Configuration);
 
 
             builder.Services.AddIdentity<User, IdentityRole>(options =>
@@ -61,6 +68,11 @@ namespace AuthApp_Api
 
             });
 
+
+
+
+
+
              builder.Services.AddScoped<IUserService, UserService>();
 
               builder.Services.AddScoped<ISecurityService, JWTSecurityService>();
@@ -69,7 +81,8 @@ namespace AuthApp_Api
              builder.Services.AddSingleton<IMailService, SendGridMailService>();
 
             //fake mailing
-            builder.Services.AddScoped<IEmailService, EmailService>();
+            //builder.Services.AddScoped<IEmailService, EmailService>();
+
 
 
 

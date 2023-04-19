@@ -26,21 +26,6 @@ namespace AuthApp_Api.Controllers
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
         //api/authentication/resetpassword
         [HttpPost("resetpassword")]
         public async Task<IActionResult> ResetPasswordAsync([FromForm] ResetPasswordViewModel model)

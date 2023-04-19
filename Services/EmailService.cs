@@ -1,36 +1,66 @@
 ﻿using AuthApp_Api.Models;
 using AuthApp_Api.Services.Interface;
-using MailKit.Security;
 using MimeKit;
-using MimeKit.Text;
-using Org.BouncyCastle.Crypto.Macs;
+using SmtpClient = MailKit.Net.Smtp.SmtpClient;
 
 namespace AuthApp_Api.Services
 {
     public class EmailService : IEmailService
     {
-        private readonly IConfiguration _config;
+        private readonly EmailConfiguration _emailConfig;
 
-        public EmailService(IConfiguration config)
+        public EmailService(EmailConfiguration emailConfig)
         {
-            _config = config;
+            _emailConfig = emailConfig;
         }
 
-    
-
-    public async Task SendEmail(string To, string subject, string Body)
+        public async Task SendEmail(string To, string subject, string Body)
         {
-            var email = new MimeMessage();
-            email.From.Add(MailboxAddress.Parse(_config.GetSection("EmailUsername").Value));
-            email.To.Add(MailboxAddress.Parse(To));
-            email.Subject = subject;
-            email.Body = new TextPart(TextFormat.Html) { Text = Body };
+            var message = new Message
+            {
+                To = { new MailboxAddress("", To) },
+                Subject = subject,
+                Content = Body
+            };
 
-            using var smtp = new MailKit.Net.Smtp.SmtpClient();
-            await smtp.ConnectAsync(_config.GetSection("EmailHost").Value, 587, SecureSocketOptions.StartTls).ConfigureAwait(false);
-            await smtp.AuthenticateAsync(_config.GetSection("EmailUsername").Value, _config.GetSection("EmailPassword").Value).ConfigureAwait(false);
-            await smtp.SendAsync(email).ConfigureAwait(false);
-            await smtp.DisconnectAsync(true).ConfigureAwait(false);
+            var emailMessage = CreateEmailMessage(message);
+            Send(emailMessage);
         }
+
+        private MimeMessage CreateEmailMessage(Message message)
+        {
+            var emailMessage = new MimeMessage();
+            emailMessage.From.Add(new MailboxAddress("", _emailConfig.From));
+            emailMessage.To.AddRange(message.To);
+            emailMessage.Subject = message.Subject;
+            emailMessage.Body = new TextPart(MimeKit.Text.TextFormat.Text) { Text = message.Content };
+
+            return emailMessage;
+        }
+
+        private void Send(MimeMessage mailMessage)
+        {
+            using var client = new SmtpClient();
+            try
+            {
+                client.Connect(_emailConfig.SmtpServer, _emailConfig.Port, true);
+                client.AuthenticationMechanisms.Remove("XOAUTH2");
+                client.Authenticate(_emailConfig.UserName, _emailConfig.Password);
+
+                client.Send(mailMessage);
+            }
+            catch
+            {
+                throw;
+            }
+            finally
+            {
+                client.Disconnect(true);
+                client.Dispose();
+            }
+        }
+
+     
     }
+
 }
